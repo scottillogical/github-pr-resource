@@ -43,7 +43,9 @@ func (s *Source) Validate() error {
 	if s.UseGitHubApp {
 		if s.PrivateKey == "" || s.AppID == 0 || s.InstallationID == 0 {
 			return errors.New("private_key, application_id and installation_id must be set if using GitHub App authentication")
-
+		}
+		if s.AccessToken != "" {
+			return errors.New("access_token is not required when using GitHub App authentication")
 		}
 	}
 	if s.Repository == "" {
