@@ -86,10 +86,10 @@ func (g *GitClient) Init(branch string) error {
 
 // Pull ...
 func (g *GitClient) Pull(uri, branch string, depth int, submodules bool, fetchTags bool) error {
-	endpoint, err := g.Endpoint(uri)
-	if err != nil {
-		return err
-	}
+	//endpoint, err := g.Endpoint(uri)
+	//if err != nil {
+		//return err
+	//}
 
 	if err := g.command("git", "remote", "add", "origin", endpoint).Run(); err != nil {
 		return fmt.Errorf("setting 'origin' remote to '%s' failed: %s", endpoint, err)
