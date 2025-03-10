@@ -1,10 +1,4 @@
-ARG golang
-ARG alpine
-
-
-
-FROM ${golang} AS builder
-
+FROM public.ecr.aws/docker/library/golang:1.22 as builder
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y -qq update \
     && apt-get -y -qq install "make"
@@ -17,7 +11,7 @@ RUN go version \
 
 
 
-FROM ${alpine} AS resource
+FROM public.ecr.aws/docker/library/alpine:3.21.3 AS resource
 RUN apk add --update --no-cache \
     git \
     git-lfs \
