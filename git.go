@@ -86,10 +86,10 @@ func (g *GitClient) Init(branch string) error {
 
 // Pull ...
 func (g *GitClient) Pull(uri, branch string, depth int, submodules bool, fetchTags bool) error {
-	//endpoint, err := g.Endpoint(uri)
-	//if err != nil {
-		//return err
-	//}
+	endpoint, err := g.Endpoint(uri)
+	if err != nil {
+		return err
+	}
 
 	if err := g.command("git", "remote", "add", "origin", endpoint).Run(); err != nil {
 		return fmt.Errorf("setting 'origin' remote to '%s' failed: %s", endpoint, err)
@@ -232,6 +232,6 @@ func (g *GitClient) Endpoint(uri string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to parse commit url: %s", err)
 	}
-	endpoint.User = url.UserPassword("x-oauth-basic", g.AccessToken)
+	//endpoint.User = url.UserPassword("x-oauth-basic", g.AccessToken)
 	return endpoint.String(), nil
 }
