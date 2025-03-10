@@ -24,4 +24,7 @@ RUN chmod +x /opt/resource/*
 
 
 FROM resource
+ENV GITHUB_APP_CRED_HELPER_VERSION="v0.3.2"
+ENV BIN_PATH_TARGET=/usr/local/bin
+RUN curl -L https://github.com/bdellegrazie/git-credential-github-app/releases/download/${GITHUB_APP_CRED_HELPER_VERSION}/git-credential-github-app_${GITHUB_APP_CRED_HELPER_VERSION}_Linux_x86_64.tar.gz | tar zxv -C ${BIN_PATH_TARGET}
 LABEL MAINTAINER=cloudfoundry-community
