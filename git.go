@@ -75,7 +75,7 @@ func (g *GitClient) Init(branch string) error {
 	if err := g.command("git", "config", "user.email", "concourse@local").Run(); err != nil {
 		return fmt.Errorf("failed to configure git email: %s", err)
 	}
-	if err := g.command("git", "config", "url.https://x-access-token@github.com/.insteadOf", "git@github.com:").Run(); err != nil {
+	if err := g.command("git", "config", "credential.https://github.com.helper","!git-credential-github-app --appId ((github/concourse-app-id)) -organization ((github/concourse-app-organization-name)) -username x-access-token").Run(); err != nil {
 		return fmt.Errorf("failed to configure github url: %s", err)
 	}
 	if err := g.command("git", "config", "url.https://.insteadOf", "git://").Run(); err != nil {
@@ -90,6 +90,7 @@ func (g *GitClient) Pull(uri, branch string, depth int, submodules bool, fetchTa
 	if err != nil {
 		return err
 	}
+
 
 	if err := g.command("git", "remote", "add", "origin", endpoint).Run(); err != nil {
 		return fmt.Errorf("setting 'origin' remote to '%s' failed: %s", endpoint, err)

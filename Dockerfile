@@ -22,7 +22,5 @@ RUN curl -L https://github.com/bdellegrazie/git-credential-github-app/releases/d
 COPY --from=builder /go/src/github.com/telia-oss/github-pr-resource/build /opt/resource
 RUN chmod +x /opt/resource/*
 
-
-
 FROM resource
 LABEL MAINTAINER=cloudfoundry-community
