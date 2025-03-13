@@ -8,6 +8,9 @@ WORKDIR /go/src/github.com/telia-oss/github-pr-resource
 
 RUN go version &&  make all
 
+FROM public.ecr.aws/docker/library/golang:1.22 as artifact-builder
+RUN echo "artifact publishing is not required"
+
 FROM public.ecr.aws/docker/library/alpine:3.21.3 AS resource
 RUN apk add --update --no-cache \
     git \
