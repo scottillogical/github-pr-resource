@@ -36,17 +36,25 @@ func NewGitClient(source *Source, dir string, output io.Writer) (*GitClient, err
 		os.Setenv("GIT_LFS_SKIP_SMUDGE", "true")
 	}
 	return &GitClient{
-		AccessToken: source.AccessToken,
-		Directory:   dir,
-		Output:      output,
+		AccessToken:        source.AccessToken,
+		PrivateKey:         source.PrivateKey,
+		UseGithubApp:       source.UseGitHubApp,
+		ApplicationID:      source.ApplicationID,
+		GithubOrganziation: source.GithubOrganization,
+		Directory:          dir,
+		Output:             output,
 	}, nil
 }
 
 // GitClient ...
 type GitClient struct {
-	AccessToken string
-	Directory   string
-	Output      io.Writer
+	AccessToken        string
+	UseGithubApp       bool
+	Directory          string
+	ApplicationID      int64
+	GithubOrganziation string
+	PrivateKey         string
+	Output             io.Writer
 }
 
 func (g *GitClient) command(name string, arg ...string) *exec.Cmd {
@@ -55,9 +63,15 @@ func (g *GitClient) command(name string, arg ...string) *exec.Cmd {
 	cmd.Stdout = g.Output
 	cmd.Stderr = g.Output
 	cmd.Env = os.Environ()
+	if !g.UseGithubApp {
+		cmd.Env = append(cmd.Env,
+			"X_OAUTH_BASIC_TOKEN="+g.AccessToken)
+	}
+
 	cmd.Env = append(cmd.Env,
-		"X_OAUTH_BASIC_TOKEN="+g.AccessToken,
 		"GIT_ASKPASS=/usr/local/bin/askpass.sh")
+	fmt.Fprint(os.Stderr, fmt.Sprintf("\n%s %v", name, arg))
+
 	return cmd
 }
 
@@ -75,9 +89,25 @@ func (g *GitClient) Init(branch string) error {
 	if err := g.command("git", "config", "user.email", "concourse@local").Run(); err != nil {
 		return fmt.Errorf("failed to configure git email: %s", err)
 	}
-	if err := g.command("git", "config", "url.https://x-oauth-basic@github.com/.insteadOf", "git@github.com:").Run(); err != nil {
-		return fmt.Errorf("failed to configure github url: %s", err)
+
+	if g.UseGithubApp {
+		filePath := "/tmp/git-resource-private-key"
+		err := ioutil.WriteFile(filePath, []byte(g.PrivateKey), 0600)
+		if err != nil {
+			fmt.Println("Error writing private key:", err)
+			os.Exit(1)
+		}
+
+		helperStr := fmt.Sprintf("!git-credential-github-app --appId %d -organization %s -username x-access-token  -privateKeyFile /tmp/git-resource-private-key", g.ApplicationID, g.GithubOrganziation)
+		if err := g.command("git", "config", "credential.https://github.com.helper", helperStr).Run(); err != nil {
+			return fmt.Errorf("failed to configure github url: %s", err)
+		}
+	} else {
+		if err := g.command("git", "config", "url.https://x-oauth-basic@github.com/.insteadOf", "git@github.com:").Run(); err != nil {
+			return fmt.Errorf("failed to configure github url: %s", err)
+		}
 	}
+
 	if err := g.command("git", "config", "url.https://.insteadOf", "git://").Run(); err != nil {
 		return fmt.Errorf("failed to configure github url: %s", err)
 	}
@@ -232,6 +262,9 @@ func (g *GitClient) Endpoint(uri string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to parse commit url: %s", err)
 	}
-	endpoint.User = url.UserPassword("x-oauth-basic", g.AccessToken)
+	if !g.UseGithubApp {
+		endpoint.User = url.UserPassword("x-oauth-basic", g.AccessToken)
+	}
+
 	return endpoint.String(), nil
 }
