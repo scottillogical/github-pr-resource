@@ -1,3 +1,6 @@
+FROM public.ecr.aws/docker/library/golang:1.22 as artifact-builder
+RUN echo "artifact publishing is not required"
+
 FROM public.ecr.aws/docker/library/golang:1.22 as builder
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y -qq update \
